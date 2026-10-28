@@ -118,7 +118,7 @@ ZoteroMinerU 的核心用途，是先把这些论文准备成 **Markdown 全文 
 ## 适合怎样使用
 
 ```mermaid
-flowchart LR
+flowchart TB
     Z[Zotero 论文 PDF] --> M[Markdown 全文]
     M --> S[总结卡片]
     S --> I[文献索引]
