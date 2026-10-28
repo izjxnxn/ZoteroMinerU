@@ -63,7 +63,9 @@ class CheckboxTests(unittest.TestCase):
 
     def close_window(self):
         self.window.quit_app()
-        self.window.engine.join(timeout=5)
+        for thread in (self.window.engine, self.window.summarizer, self.window.researcher, self.window.translator):
+            thread.join(timeout=5)
+            self.assertFalse(thread.is_alive(), "background thread did not stop before closing the test database")
         self.window.store.close()
 
     def wait(self, predicate, seconds=15):
