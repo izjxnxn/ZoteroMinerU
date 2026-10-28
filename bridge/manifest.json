@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "MinerU Markdown 桥接",
+  "version": "2.3.0",
+  "description": "为 Zotero MinerU 中文转换工具通知文献变化，把转换好的 Markdown、AI 总结和双语对照 PDF 添加为论文的子附件，并可把论文的附件或笔记移入回收站。",
+  "author": "Zotero MinerU",
+  "applications": {
+    "zotero": {
+      "id": "mineru-bridge@local.zotero",
+      "update_url": "https://updates.invalid/zotero-mineru/updates.json",
+      "strict_min_version": "7.0",
+      "strict_max_version": "9.*"
+    }
+  }
+}

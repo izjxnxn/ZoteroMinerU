@@ -1,0 +1,4 @@
+PySide6-Essentials>=6.8,<7
+requests>=2.32,<3
+pypdf>=5.4,<6
+PyInstaller>=6.11,<7
