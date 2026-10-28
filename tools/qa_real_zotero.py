@@ -121,7 +121,9 @@ def markdown_children(client, key):
 
 
 def main():
-    qa = ROOT / "qa" / "real-zotero"
+    qa = Path(os.environ.get("MINERU_ZOTERO_QA_DIR", ROOT / "qa" / "real-zotero")).resolve()
+    if not qa.is_relative_to((ROOT / "qa").resolve()):
+        raise ValueError("隔离验收目录必须位于项目 qa 目录内。")
     qa.mkdir(parents=True, exist_ok=True)
     for name in ("profile", "data", "app-state", "output", "legacy", "fixture-ready.json", "acceptance.json", "diagnostic.json"):
         target = (qa / name).resolve()
@@ -180,9 +182,9 @@ def main():
     shutil.copy2(ROOT / "resources/mineru-zotero-bridge.xpi", profile / "extensions/mineru-bridge@local.zotero.xpi")
     with zipfile.ZipFile(profile / "extensions/mineru-qa@local.zotero.xpi", "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("manifest.json", json.dumps({"manifest_version": 2, "name": "MinerU Isolated QA", "version": "2.0",
-            "applications": {"zotero": {"id": "mineru-qa@local.zotero", "update_url": "https://updates.invalid/mineru-qa.json", "strict_min_version": "9.0", "strict_max_version": "9.*"}}}))
+            "applications": {"zotero": {"id": "mineru-qa@local.zotero", "update_url": "https://updates.invalid/mineru-qa.json", "strict_min_version": "9.0", "strict_max_version": "10.0.*"}}}))
         zf.writestr("bootstrap.js", HARNESS)
-    executable = next((p for p in [Path("C:/Program Files/Zotero/zotero.exe"), Path("D:/SoftCenters/Zotero/zotero.exe"),
+    executable = Path(os.environ["MINERU_ZOTERO_QA_EXE"]) if os.environ.get("MINERU_ZOTERO_QA_EXE") else next((p for p in [Path("C:/Program Files/Zotero/zotero.exe"), Path("D:/SoftCenters/Zotero/zotero.exe"),
                                    Path(os.environ.get("LOCALAPPDATA", "")) / "Zotero/zotero.exe"] if p.is_file()), None)
     if executable is None:
         raise RuntimeError("Zotero executable not found")
@@ -358,7 +360,8 @@ def main():
         assert len(state["batches"]) == 2, "only the two papers without Markdown were sent to MinerU"
         evidence = {"real_zotero_version": bridge["zotero_version"], "isolated_profile": str(profile),
             "first_markdown": md_data["filename"], "first_markdown_bytes": len(text.encode()),
-            "new_paper_markdown": new_md[0]["data"]["filename"], "kept_1x_markdown": third_md[0]["data"]["filename"],
+            "new_paper_markdown": new_md[0]["data"]["filename"],
+            "kept_1x_markdown": third_md[0]["data"].get("filename") or Path(third_md[0]["data"].get("path", "")).name,
             "skipped_existing": ready["second"], "mineru_batches": len(state["batches"]),
             "summary_card": sum_children[0]["data"]["filename"], "summary_note": note_children[0]["key"],
             "bilingual_pdf": bilingual[0]["data"]["filename"], "bilingual_pdf_bytes": bilingual_file.stat().st_size,

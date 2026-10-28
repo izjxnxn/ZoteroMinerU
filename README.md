@@ -4,15 +4,17 @@ Windows 中文桌面工具：把 Zotero 论文 PDF 转为 Markdown、生成 AI �
 
 ## 下载与安装
 
-前往 [最新版本下载](https://github.com/izjxnxn/ZoteroMinerU/releases/latest)，下载 **ZoteroMinerU-2.8.4-Windows-x64.zip**，完整解压后运行 `ZoteroMinerU.exe`。无需安装 Python，适用于 Windows 10/11 x64。
+前往 [最新版本下载](https://github.com/izjxnxn/ZoteroMinerU/releases/latest)，下载 **ZoteroMinerU-2.8.5-Windows-x64.zip**，完整解压后运行 `ZoteroMinerU.exe`。无需安装 Python，适用于 Windows 10/11 x64。
 
-主程序 ZIP 已包含 **Zotero 插件、完整项目源码（`source/`）、许可证和使用说明**，可以直接把这个 ZIP 发给别人。源码也可在本仓库浏览，或单独下载 `ZoteroMinerU-2.8.4-source.zip`。
+主程序 ZIP 已包含 **Zotero 插件、完整项目源码（`source/`）、许可证和使用说明**，可以直接把这个 ZIP 发给别人。源码也可在本仓库浏览，或单独下载 `ZoteroMinerU-2.8.5-source.zip`。
 
 首次启动时，如尚未安装翻译资源包，会询问是否从本项目 GitHub Release 下载 **BabelDocWorker（约 175 MB）**。确认后自动校验 SHA-256、解压并配置到 `%LOCALAPPDATA%\ZoteroMinerU\engines\2.8.4`；安装成功后再次启动不再提示。也可稍后在 **设置 → 保留排版翻译 → 下载翻译资源包** 安装。只使用 Markdown 和 AI 总结时，可以暂不下载。
 
+下载和解压配置期间，软件右下角显示当前阶段及进度条；校验时显示等待动画。安装成功后弹窗提示“下载和配置成功”，失败时弹窗提示原因，右下角也保留结果。
+
 网络无法连接 GitHub 时，可在 [v2.8.4 Release](https://github.com/izjxnxn/ZoteroMinerU/releases/tag/v2.8.4) 手动下载 `BabelDocWorker-2.8.4-Windows-x64.zip`，解压后把 `BabelDocWorker` 文件夹放到主程序旁边。引擎首次检查或翻译时还会下载版面模型和字体（约 300 MB）。
 
-在软件设置页点击“安装/更新 Zotero 插件”，按提示安装随包的 `mineru-zotero-bridge.xpi`。实际验证版本为 Zotero 9.0.6；插件声明支持 Zotero 7～9，其余版本尚未逐一验证。详细步骤见 [使用说明](使用说明.md)。EXE 暂无代码签名。
+在软件设置页点击“安装/更新 Zotero 插件”，按提示安装随包的 `mineru-zotero-bridge.xpi`（2.3.1）。实际验证版本为 Zotero 9.0.6、10.0.6；插件声明支持 Zotero 7～10.0，其余版本尚未逐一验证。已使用 2.8.4 主程序的用户也可直接安装新版 XPI，无需重新下载翻译引擎。详细步骤见 [使用说明](使用说明.md)。EXE 暂无代码签名。
 
 ## 数据与密钥
 
@@ -56,6 +58,8 @@ node tests/test_bridge.js
 ```
 
 测试使用隔离的模拟服务，不代表真实 MinerU 云端 OCR、额度和任意论文翻译质量已经通过验证。
+
+真实 Zotero 验收使用 `tools/qa_real_zotero.py` 创建独立文库。可用环境变量 `MINERU_ZOTERO_QA_EXE` 指定另一个 Zotero 可执行文件，用 `MINERU_ZOTERO_QA_DIR` 指定项目 `qa/` 内的独立输出目录；不指定时沿用本机 Zotero 和 `qa/real-zotero`。
 
 ## 源码结构
 

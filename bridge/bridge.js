@@ -2,7 +2,7 @@
    creation, and moving a paper's own attachments/notes to the Zotero trash. */
 var MineruBridge = {
     PROTOCOL: 5,
-    VERSION: "2.3.0",
+    VERSION: "2.3.1",
     // Same pieces Zotero uses for PDF names ("作者 - 年份 - 标题"), joined as 作者_标题.
     NAME_TEMPLATE: '{{ firstCreator suffix="_" }}{{ title truncate="100" }}',
     revision: 0,

@@ -90,7 +90,12 @@ class ResourceTests(unittest.TestCase):
             result = resources.download_worker(self.home, progress.append, self.cancelled)
         self.assertTrue(result.is_file())
         self.assertEqual(get.call_args.args[0], resources.WORKER_URL)
-        self.assertTrue(any("校验" in text for text in progress))
+        self.assertTrue(any("校验" in event["text"] for event in progress))
+        self.assertEqual([e["percent"] for e in progress if e["phase"] == "download"][-1], 100)
+        install = [e["percent"] for e in progress if e["phase"] == "install"]
+        self.assertTrue(install)
+        self.assertEqual(install, sorted(install))
+        self.assertEqual(install[-1], 99, "success is reported only after the atomic installation returns")
         self.assertFalse(list((self.home / "engines").glob(".download-*")))
 
     def test_source_allowlist_excludes_personal_data(self):

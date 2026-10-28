@@ -96,10 +96,27 @@ class CheckboxTests(unittest.TestCase):
 
     def test_resource_download_updates_progress_and_reenables_button(self):
         self.window.download_engine_button.setEnabled(False)
-        self.window.handle_event("engine_download", "正在下载：12 MB")
+        self.window.handle_event("engine_download", {"text": "正在下载：12 MB", "percent": 25})
         self.assertIn("12 MB", self.window.translate_engine_label.text())
-        self.window.handle_event("engine_download_done", "已安装")
+        self.assertEqual(self.window.resource_progress.value(), 25)
+        self.assertFalse(self.window.resource_progress.isHidden())
+        with mock.patch.object(QMessageBox, "information") as information:
+            self.window.handle_event("engine_download_done", {"ok": True, "text": "下载和配置成功"})
+        information.assert_called_once()
         self.assertTrue(self.window.download_engine_button.isEnabled())
+        self.assertEqual(self.window.resource_progress.value(), 100)
+
+    def test_resource_install_progress_and_failure_dialog(self):
+        self.window.handle_event("engine_download", {"text": "正在校验…", "percent": None})
+        self.assertEqual(self.window.resource_progress.maximum(), 0)
+        self.window.handle_event("engine_download", {"text": "正在解压配置…", "percent": 60})
+        self.assertEqual(self.window.resource_progress.value(), 60)
+        with mock.patch.object(QMessageBox, "warning") as warning, \
+                mock.patch.object(QMessageBox, "information") as information:
+            self.window.handle_event("engine_download_done", {"ok": False, "text": "下载失败"})
+        warning.assert_called_once()
+        information.assert_not_called()
+        self.assertEqual(self.window.resource_progress.value(), 0)
 
     def test_summaries_use_checkboxes_not_row_selection(self):
         table = self.window.table

@@ -13,7 +13,7 @@ from PySide6.QtGui import QAction, QColor, QDesktopServices, QFont, QIcon, QPain
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QFileDialog, QFormLayout, QGroupBox,
     QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QMenu, QScrollArea,
-    QMessageBox, QPushButton, QSpinBox, QSplitter, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QSystemTrayIcon,
+    QMessageBox, QProgressBar, QPushButton, QSpinBox, QSplitter, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QSystemTrayIcon,
     QTabWidget, QTextBrowser, QTextEdit,
     QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
@@ -262,6 +262,14 @@ class Window(QMainWindow):
         self.tabs.addTab(help_widget, "使用说明")
         self.setCentralWidget(container)
         self.statusBar().showMessage("就绪")
+        self.resource_progress_text = QLabel()
+        self.resource_progress_text.setMaximumWidth(360)
+        self.resource_progress = QProgressBar()
+        self.resource_progress.setFixedWidth(180)
+        self.resource_progress.setMaximumHeight(20)
+        for widget in (self.resource_progress_text, self.resource_progress):
+            self.statusBar().addPermanentWidget(widget)
+            widget.hide()
 
     def _work_tab(self):
         work = QWidget()
@@ -857,16 +865,18 @@ class Window(QMainWindow):
             self.translate_engine_label.setText("翻译引擎已安装，可以直接生成双语 PDF。")
             return
         self.download_engine_button.setEnabled(False)
-        self.translate_engine_label.setText("正在准备下载翻译资源包…")
+        self.handle_event("engine_download", {"text": "正在准备下载翻译资源包…", "percent": None})
 
         def run():
             try:
                 download_worker(self.config.home, lambda text: self.events.event.emit("engine_download", text),
                                 self._engine_install_cancel)
-                self.events.event.emit("engine_download_done", "翻译资源包已安装并自动配置，可以生成双语 PDF。")
+                self.events.event.emit("engine_download_done", {"ok": True,
+                    "text": "BabelDocWorker 翻译资源包已下载成功，并已自动解压和配置成功。\n"
+                            "首次检查或翻译时，还可能需要下载版面模型和字体。"})
             except Exception as error:
-                self.events.event.emit("engine_download_done", f"资源包安装未完成：{error}\n"
-                    f"可重试下载，或从 {RELEASE_URL} 下载 ZIP，将 BabelDocWorker 文件夹解压到 EXE 旁。")
+                self.events.event.emit("engine_download_done", {"ok": False, "text": f"资源包安装未完成：{error}\n"
+                    f"可重试下载，或从 {RELEASE_URL} 下载 ZIP，将 BabelDocWorker 文件夹解压到 EXE 旁。"})
 
         self._engine_installer = threading.Thread(target=run, name="translation-engine-installer", daemon=True)
         self._engine_installer.start()
@@ -1837,10 +1847,28 @@ class Window(QMainWindow):
             self.settings_message.setText(str(data))
             self.statusBar().showMessage(str(data), 20000)
         elif kind in ("engine_download", "engine_download_done"):
-            self.translate_engine_label.setText(str(data))
+            text = data["text"]
+            self.translate_engine_label.setText(text)
+            self.resource_progress_text.show()
+            self.resource_progress.show()
+            self.resource_progress_text.setToolTip(text)
             if kind == "engine_download_done":
                 self.download_engine_button.setEnabled(True)
-                self.statusBar().showMessage(str(data), 20000)
+                self.resource_progress.setRange(0, 100)
+                self.resource_progress.setValue(100 if data["ok"] else 0)
+                self.resource_progress_text.setText("翻译资源包：下载和配置成功" if data["ok"] else "翻译资源包：安装未完成")
+                self.statusBar().showMessage(text, 20000)
+                if not self._force_quit:
+                    if data["ok"]:
+                        QMessageBox.information(self, "翻译资源包下载和配置成功", text)
+                    else:
+                        QMessageBox.warning(self, "翻译资源包安装未完成", text)
+            else:
+                self.resource_progress_text.setText(text)
+                percent = data.get("percent")
+                self.resource_progress.setRange(0, 0 if percent is None else 100)
+                if percent is not None:
+                    self.resource_progress.setValue(percent)
         elif kind == "llm_probe":
             self.settings_message.setText(str(data))
             self.statusBar().showMessage(str(data), 20000)
